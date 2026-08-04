@@ -1,0 +1,7 @@
+prepare_deployment.R
+README.md
+PATCH_NOTES.md
+sql/
+.Renviron
+.Renviron.example
+VIMSOpportunityBoard.Rproj
