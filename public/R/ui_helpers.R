@@ -24,7 +24,7 @@ badge <- function(text, class_name = "badge-neutral") {
 
 link_button <- function(label, href, class_name = "btn-primary") {
   href <- safe_text(href, fallback = "")
-  if (!nzchar(href)) return(NULL)
+  if (!nzchar(href) || !grepl("^(https?://|mailto:)", href, ignore.case = TRUE)) return(NULL)
   tags$a(
     label,
     class = paste("btn", class_name),

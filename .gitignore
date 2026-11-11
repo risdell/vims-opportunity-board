@@ -1,6 +1,20 @@
-.Rproj.user
+# Misc
+*.log
 .Rhistory
 .RData
-.Ruserdata
+.Rproj.user/
+
+# Data exports and local databases
+*.csv
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.db
+
+# Local configuration
 .Renviron
-.DS_Store
+**/.Renviron
+*.env
+
+# Server-specific service files
+*.service
