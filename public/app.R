@@ -8,6 +8,17 @@ library(purrr)
 library(lubridate)
 library(htmltools)
 
+# Require a database configuration for this deployment
+if (!file.exists(".Renviron")) {
+  stop("Missing instance-specific .Renviron configuration")
+}
+
+readRenviron(".Renviron")
+
+if (!nzchar(Sys.getenv("OPPORTUNITY_DB"))) {
+  stop("OPPORTUNITY_DB is not configured")
+}
+
 source("R/database.R")
 source("R/ui_helpers.R")
 
