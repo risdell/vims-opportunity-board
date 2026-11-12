@@ -470,3 +470,34 @@ body {
   .navbar .navbar-nav .nav-link { margin: 0.2rem 0 !important; }
   .maintainer-notice { font-size: 0.92rem; }
 }
+
+
+/* Mobile branding: shorter text beside the collapsed menu toggle. */
+.navbar-brand-title--mobile { display: none; }
+
+@media (max-width: 991.98px) {
+  .navbar .navbar-brand {
+    min-width: 0;
+    max-width: calc(100% - 64px);
+    margin-right: 0.3rem;
+  }
+  .navbar-brand-wrap {
+    max-width: 100%;
+    min-width: 0;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+  }
+  .navbar-brand-title--desktop { display: none; }
+  .navbar-brand-title--mobile {
+    display: inline;
+    white-space: normal;
+  }
+  .navbar-brand-logo {
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+  }
+}
+@media (max-width: 390px) {
+  .navbar-brand-title--mobile { font-size: 0.82rem; }
+}
