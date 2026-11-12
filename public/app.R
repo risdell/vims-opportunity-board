@@ -39,7 +39,8 @@ navbar_title <- div(
     alt = "VIMS logo",
     class = "navbar-brand-logo"
   ),
-  tags$span("W&M’s VIMS & Batten School Opportunity Board")
+  tags$span("W&M’s VIMS & Batten School Opportunity Board", class = "navbar-brand-title--desktop"),
+  tags$span("VIMS Opportunity Board", class = "navbar-brand-title--mobile")
 )
 
 browse_panel <- nav_panel(
@@ -224,7 +225,7 @@ ui <- page_navbar(
   inverse = TRUE,
   theme = app_theme,
   header = tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=20261110"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=20261112"),
     tags$link(rel = "icon", type = "image/png", href = "VIMSGlobe.png")
   ),
   browse_panel,
