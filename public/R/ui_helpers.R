@@ -37,8 +37,8 @@ link_button <- function(label, href, class_name = "btn-primary", opportunity_tit
     class = paste("btn", class_name),
     href = href,
     `aria-label` = accessible_name,
-    if (external) tags$span(class = "visually-hidden", " (opens in a new tab)"),
-    if (external) list(target = "_blank", rel = "noopener noreferrer") else NULL
+    target = if (external) "_blank" else NULL,
+    rel = if (external) "noopener noreferrer" else NULL
   )
 }
 
