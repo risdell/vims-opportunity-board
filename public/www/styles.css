@@ -528,3 +528,61 @@ textarea:focus-visible,
   font-size: clamp(1.5rem, 3vw, 2rem);
   line-height: 1.2;
 }
+
+
+/* Accessibility follow-up: skip navigation and field-specific errors. */
+.oppboard-skip-link {
+  position: fixed;
+  z-index: 2000;
+  top: -8rem;
+  left: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #ffffff;
+  background: #06263b;
+  border: 3px solid #85b8c7;
+  border-radius: 0.4rem;
+  font-weight: 700;
+}
+.oppboard-skip-link:focus,
+.oppboard-skip-link:focus-visible {
+  top: 0.5rem;
+  color: #ffffff;
+}
+main:focus { outline: none; }
+
+.form-error-summary:empty { display: none; }
+.form-error-summary:not(:empty) {
+  margin: 0.75rem 0 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid #912626;
+  border-left-width: 6px;
+  border-radius: 0.4rem;
+  color: #572020;
+  background: #fff4f2;
+}
+.form-error-summary:focus {
+  outline: 3px solid #06263b !important;
+  outline-offset: 3px;
+}
+.form-error-heading {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+.form-error-list { margin: 0; padding-left: 1.25rem; }
+.form-error-list li + li { margin-top: 0.35rem; }
+.form-error-list a {
+  color: #7c1818;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.field-error {
+  margin: 0.35rem 0 0;
+  color: #912626;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border: 2px solid #912626 !important;
+}
