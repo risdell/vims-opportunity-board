@@ -31,7 +31,6 @@ source(file.path(repo, "public", "R", "database.R"))
 initialize_database()
 
 con <- db_connect()
-on.exit(DBI::dbDisconnect(con), add = TRUE)
 command <- args[[1]]
 
 if (command == "pending") {
@@ -145,3 +144,5 @@ if (command == "pending") {
     cat("Removed named demonstration records in DEVELOPMENT only.\n")
   }
 }
+
+DBI::dbDisconnect(con)
