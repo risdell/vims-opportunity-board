@@ -22,15 +22,23 @@ badge <- function(text, class_name = "badge-neutral") {
   tags$span(class = paste("opportunity-badge", class_name), safe_text(text))
 }
 
-link_button <- function(label, href, class_name = "btn-primary") {
+link_button <- function(label, href, class_name = "btn-primary", opportunity_title = NULL) {
   href <- safe_text(href, fallback = "")
   if (!nzchar(href) || !grepl("^(https?://|mailto:)", href, ignore.case = TRUE)) return(NULL)
+  external <- grepl("^https?://", href, ignore.case = TRUE)
+  context <- safe_text(opportunity_title, fallback = "")
+  accessible_name <- paste0(
+    label,
+    if (nzchar(context)) paste0(" for ", context) else "",
+    if (external) " (opens in a new tab)" else ""
+  )
   tags$a(
     label,
     class = paste("btn", class_name),
     href = href,
-    target = "_blank",
-    rel = "noopener noreferrer"
+    `aria-label` = accessible_name,
+    if (external) tags$span(class = "visually-hidden", " (opens in a new tab)"),
+    if (external) list(target = "_blank", rel = "noopener noreferrer") else NULL
   )
 }
 
@@ -48,8 +56,12 @@ opportunity_card <- function(row) {
   application_url <- safe_text(row$application_url, fallback = "")
   email <- safe_text(row$contact_email, fallback = "")
 
+  opportunity_title <- safe_text(row$opportunity_name)
+  heading_id <- paste0("opportunity-", gsub("[^A-Za-z0-9_-]", "-", safe_text(row$id)))
+
   tags$article(
     class = "opportunity-card",
+    `aria-labelledby` = heading_id,
     div(
       class = "card-topline",
       div(
@@ -60,7 +72,7 @@ opportunity_card <- function(row) {
         timing_badge
       )
     ),
-    h3(safe_text(row$opportunity_name)),
+    h3(id = heading_id, opportunity_title),
     p(class = "opportunity-department", safe_text(row$department_center)),
     p(class = "opportunity-description", safe_text(row$description)),
     div(
@@ -71,7 +83,7 @@ opportunity_card <- function(row) {
     ),
     tags$details(
       class = "opportunity-details",
-      tags$summary("View full details"),
+      tags$summary(`aria-label` = paste("View full details for", opportunity_title), "View full details"),
       div(
         class = "details-body",
         h4("Qualifications"),
@@ -92,8 +104,8 @@ opportunity_card <- function(row) {
     ),
     div(
       class = "card-actions",
-      link_button("Application / details", application_url, "btn-primary"),
-      if (nzchar(email)) link_button("Email contact", paste0("mailto:", URLencode(email)), "btn-outline-primary")
+      link_button("Application / details", application_url, "btn-primary", opportunity_title),
+      if (nzchar(email)) link_button("Email contact", paste0("mailto:", URLencode(email)), "btn-outline-primary", opportunity_title)
     )
   )
 }
