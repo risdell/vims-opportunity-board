@@ -4,46 +4,46 @@ Updated 2026-11-13. Changes belong to GitHub branch **vims-dev**; do not promote
 ## 1. Sync and check development
 
 On the VIMS server (as risdell):
-\`\`\`bash
+```bash
 bash ~/oppboard-deploy.sh sync-dev
 cd /home/risdell/vims-opportunity-board-dev
 Rscript -e 'parse("public/app.R"); parse("ops/dev_data.R"); cat("R syntax OK\n")'
-\`\`\`
+```
 Open https://shiny.vims.edu/OpportunityBoardDev/ in a fresh browser window. The script reloads this Shiny app without restarting the whole Shiny Server.
 
 ## 2. Add safe demonstration records (recommended)
 
 The helper is **deliberately locked** to the development database and refuses to run with the production database path. It creates three clearly labelled DEMO-only, approved records, idempotently. It does not read or clone production submissions.
 
-\`\`\`bash
+```bash
 cd /home/risdell/vims-opportunity-board-dev
 sudo -u shiny env \
   OPPORTUNITY_DB=/var/lib/vims-opportunity-board-dev/opportunities.sqlite \
   Rscript ops/dev_data.R seed
-\`\`\`
+```
 
 Click **Refresh opportunities** in the development board. Three demo listings should appear, with both short and unusually long titles, badges, details, and variable action links.
 
 To list pending development submissions (including the fake submission you made through the public form):
-\`\`\`bash
+```bash
 sudo -u shiny env \
   OPPORTUNITY_DB=/var/lib/vims-opportunity-board-dev/opportunities.sqlite \
   Rscript ops/dev_data.R pending
-\`\`\`
+```
 To approve exactly one chosen pending record:
-\`\`\`bash
+```bash
 sudo -u shiny env \
   OPPORTUNITY_DB=/var/lib/vims-opportunity-board-dev/opportunities.sqlite \
   Rscript ops/dev_data.R approve 'PASTE-EXACT-ID-HERE'
-\`\`\`
+```
 The script prints the title and requires typing **YES**. Use your actual test record ID, not the placeholder.
 
 To remove only the three named demo fixtures after testing:
-\`\`\`bash
+```bash
 sudo -u shiny env \
   OPPORTUNITY_DB=/var/lib/vims-opportunity-board-dev/opportunities.sqlite \
   Rscript ops/dev_data.R remove-demo
-\`\`\`
+```
 This requires typing **DELETE DEMO**. It does not remove other test submissions.
 
 ## 3. Optional: use the admin GUI against development without publishing it
@@ -51,18 +51,18 @@ This requires typing **DELETE DEMO**. It does not remove other test submissions.
 When you want to test edit/approve/close workflows or their accessibility, start a temporary loopback-only copy of the existing admin app:
 
 On the VIMS server, in one SSH session:
-\`\`\`bash
+```bash
 cd /home/risdell/vims-opportunity-board-dev/admin
 sudo -u shiny env \
   OPPORTUNITY_DB=/var/lib/vims-opportunity-board-dev/opportunities.sqlite \
   Rscript -e "shiny::runApp('.', host='127.0.0.1', port=4863, launch.browser=FALSE)"
-\`\`\`
+```
 The admin password file must remain readable by the shiny user. Leave that SSH session running while using the admin app.
 
 On your own computer, in another terminal:
-\`\`\`bash
+```bash
 ssh -N -L 4863:127.0.0.1:4863 risdell@shiny.vims.edu
-\`\`\`
+```
 Then browse to http://localhost:4863, sign in using the existing administrator password, and confirm that only *development* records are present. Press Ctrl+C in both terminal sessions afterward. Do **not** link the development admin to a public /srv/shiny-server/ URL.
 
 ## 4. Accessibility changes in this iteration
@@ -86,7 +86,7 @@ Do these on the **development** URL. Source inspection alone cannot prove WCAG c
 | Sample cards | Tab through three DEMO cards and open their details with Enter/Space | Each control has visible focus; screen-reader labels identify the relevant opportunity |
 | Required inputs | On Submit, leave fields blank and click Submit for review | One error summary identifies each missing field; linked messages focus inputs |
 | Dates | Enter a missing or expired deadline; an end date before the start | Appropriate date-specific inline messages and aria-invalid |
-| Invalid URL | Enter \`example.org/apply\` | Form identifies the required http(s) prefix |
+| Invalid URL | Enter `example.org/apply` | Form identifies the required http(s) prefix |
 | Change requests | Submit without email, details, or posting title | Each invalid field gets specific guidance; valid input can be submitted (to dev only) |
 | Keyboard | Test hamburger, nav tabs, filters, Selectize, calendar input, details, modal dialog, and Escape | No keyboard trap; focus order and focus ring remain usable |
 | Zoom | Browser zoom at 200% and 400%, and width near 320 CSS pixels | No loss of content/functionality; ordinary text does not require horizontal scrolling |
@@ -108,8 +108,8 @@ WCAG 2.2 AA is the target for improvements, not a certification. See W3C WCAG: h
 
 ## 7. Promote after tests pass
 
-\`\`\`bash
+```bash
 bash ~/oppboard-deploy.sh promote
 bash ~/oppboard-deploy.sh status
-\`\`\`
+```
 Production remains unchanged until you run promotion and confirm the browser smoke test. The helper backs up the production database and reloads only the production app. If anything fails, do not force-push or rerun promotion blindly; inspect Git status and the Shiny Server logs.
