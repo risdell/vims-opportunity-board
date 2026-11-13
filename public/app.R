@@ -45,7 +45,8 @@ navbar_title <- div(
 
 browse_panel <- nav_panel(
   "Browse opportunities",
-  div(
+  tags$main(
+    id = "browse-main",
     class = "page-shell",
     div(
       class = "hero",
@@ -125,12 +126,13 @@ browse_panel <- nav_panel(
 
 submit_panel <- nav_panel(
   "Submit an opportunity",
-  div(
+  tags$main(
+    id = "submit-main",
     class = "page-shell submit-shell",
     card(
       class = "submission-card",
       card_header(
-        h2("Submit a VIMS & Batten School opportunity", class = "mb-1"),
+        h1("Submit a VIMS & Batten School opportunity", class = "mb-1"),
         p(
           "Robert Isdell (risdell@vims.edu) reviews submissions before they appear on the board. All dates are required; listings close when their application deadline, end date, or board expiration date passes.",
           class = "mb-0 text-muted"
@@ -185,10 +187,11 @@ submit_panel <- nav_panel(
 
 about_panel <- nav_panel(
   "About",
-  div(
+  tags$main(
+    id = "about-main",
     class = "page-shell about-shell",
     card(
-      card_header(h2("About this board")),
+      card_header(h1("About this board")),
       p("This board helps William & Mary students discover research and internship opportunities offered by members of the VIMS & Batten School community."),
       p(strong("Independent project: "), "Created and currently maintained by Robert Isdell (risdell@vims.edu). This is not an official W&M, VIMS, or Batten School employment or academic program listing service."),
       p("Each opportunity is maintained by its listed contact. Students should confirm dates, eligibility, compensation, and expectations directly with that contact."),
@@ -200,11 +203,12 @@ about_panel <- nav_panel(
 
 request_panel <- nav_panel(
   "Request a change",
-  div(
+  tags$main(
+    id = "request-main",
     class = "page-shell submit-shell",
     card(
       card_header(
-        h2("Request an edit or removal"),
+        h1("Request an edit or removal"),
         p("This form is for people who submitted a posting. Robert Isdell reviews each request and may verify it by email before making a change. Submitting a request does not immediately modify the board.")
       ),
       selectInput("request_opportunity", "Existing published opportunity (optional)", choices = c("Other / pending or not listed" = "")),
@@ -225,7 +229,8 @@ ui <- page_navbar(
   inverse = TRUE,
   theme = app_theme,
   header = tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=20261112"),
+    tags$title("VIMS & Batten School Opportunity Board | Research & Internships"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=20261113"),
     tags$link(rel = "icon", type = "image/png", href = "VIMSGlobe.png")
   ),
   browse_panel,
@@ -332,6 +337,7 @@ server <- function(input, output, session) {
     if (!is.null(load_error())) {
       div(
         class = "alert alert-danger",
+        role = "alert",
         strong("The opportunity data could not be loaded. "),
         "Check the Shiny Server logs and SQLite database permissions."
       )
@@ -342,6 +348,9 @@ server <- function(input, output, session) {
     n <- nrow(filtered_opportunities())
     div(
       class = "results-summary",
+      role = "status",
+      `aria-live` = "polite",
+      `aria-atomic` = "true",
       h2(if (n == 1) "1 active opportunity" else paste(n, "active opportunities")),
       p("Listings automatically close after their application deadline, end date, or board expiration date.")
     )
