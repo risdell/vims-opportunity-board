@@ -7,7 +7,7 @@
   var formFields = {
     submit: [
       "submit_name", "submit_department", "submit_contact_name",
-      "submit_contact_email", "submit_description",
+      "submit_contact_email", "submit_description", "submit_application_url",
       "submit_start_date", "submit_end_date",
       "submit_deadline", "submit_expiration"
     ],
@@ -47,7 +47,8 @@
   }
 
   function markRequiredFields() {
-    formFields.submit.forEach(function (id) {
+    formFields.submit.filter(function (id) { return id !== "submit_application_url"; })
+      .forEach(function (id) {
       var input = controlFor(id);
       if (input) input.setAttribute("aria-required", "true");
     });
