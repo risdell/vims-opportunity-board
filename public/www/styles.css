@@ -343,6 +343,7 @@ body {
 }
 
 .hp-field {
+  visibility: hidden !important; /* Prevent hidden spam traps from receiving keyboard focus */
   position: absolute !important;
   left: -10000px !important;
   width: 1px !important;
