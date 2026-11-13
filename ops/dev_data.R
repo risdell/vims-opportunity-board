@@ -113,7 +113,24 @@ if (command == "pending") {
       params = list(name = record$opportunity_name)
     )
     if (nrow(existing)) {
-      cat("Already exists; skipped: ", record$opportunity_name, "\n", sep = "")
+      # Reopen only these named demonstration fixtures when their dates age out.
+      DBI::dbExecute(
+        con,
+        "UPDATE opportunities
+         SET start_date=:start_date, end_date=:end_date,
+             application_deadline=:deadline, expiration_date=:expiration,
+             status='approved', updated_at=:updated_at
+         WHERE id=:id",
+        params = list(
+          start_date = as.character(today + 14L),
+          end_date = as.character(today + 120L),
+          deadline = as.character(today + if (i == 1L) 7L else 35L),
+          expiration = as.character(today + 90L),
+          updated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+          id = existing$id[[1]]
+        )
+      )
+      cat("Refreshed existing demo: ", record$opportunity_name, "\n", sep = "")
       next
     }
     record$start_date <- as.character(today + 14L)
