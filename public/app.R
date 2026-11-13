@@ -458,6 +458,7 @@ server <- function(input, output, session) {
 
     if (length(errors)) {
       publish_form_errors(session, "submit", errors)
+      showNotification("Please correct the form fields and try again.", type = "warning", duration = 8)
       return()
     }
 
@@ -551,6 +552,7 @@ server <- function(input, output, session) {
     }
     if (length(errors)) {
       publish_form_errors(session, "request", errors)
+      showNotification("Please correct the form fields and try again.", type = "warning", duration = 8)
       return()
     }
     tryCatch({
