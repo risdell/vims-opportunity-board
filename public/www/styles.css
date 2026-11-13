@@ -217,7 +217,7 @@ body {
 
 .badge-compensation {
   color: var(--vims-white);
-  background: var(--vims-green);
+  background: var(--vims-dark-green);
 }
 
 .badge-neutral {
@@ -500,4 +500,30 @@ body {
 }
 @media (max-width: 390px) {
   .navbar-brand-title--mobile { font-size: 0.82rem; }
+}
+
+
+/* Accessibility review, 2026-11-13: visible keyboard focus and readable
+   headings while retaining the VIMS color palette. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.selectize-input.focus {
+  outline: 3px solid var(--vims-gold) !important;
+  outline-offset: 3px;
+}
+
+.navbar a:focus-visible,
+.navbar button:focus-visible {
+  outline-color: var(--vims-light-blue) !important;
+}
+
+.submission-card h1,
+.about-shell .card h1,
+.submit-shell .card h1 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.2;
 }
