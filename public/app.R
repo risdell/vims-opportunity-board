@@ -36,7 +36,7 @@ navbar_title <- div(
   class = "navbar-brand-wrap",
   tags$img(
     src = "VIMSGlobe.png",
-    alt = "VIMS logo",
+    alt = "", # Decorative: institution name is adjacent text
     class = "navbar-brand-logo"
   ),
   tags$span("W&M’s VIMS & Batten School Opportunity Board", class = "navbar-brand-title--desktop"),
@@ -173,7 +173,7 @@ submit_panel <- nav_panel(
       textAreaInput("submit_description", "Description *", rows = 5),
       textAreaInput("submit_qualification", "Qualifications", rows = 4),
       div(
-        class = "hp-field",
+        class = "hp-field", `aria-hidden` = "true",
         textInput("submit_website", "Website")
       ),
       div(
@@ -216,7 +216,7 @@ request_panel <- nav_panel(
       textInput("request_email", "Your VIMS email address *", placeholder = "name@vims.edu"),
       selectInput("request_type", "Request type *", choices = c("Edit details" = "edit", "Remove / close listing" = "remove")),
       textAreaInput("request_details", "What should change? *", rows = 5, placeholder = "For an edit, provide the corrected text or dates. For removal, explain whether the position was filled or withdrawn."),
-      div(class = "hp-field", textInput("request_website", "Website")),
+      div(class = "hp-field", `aria-hidden` = "true", textInput("request_website", "Website")),
       actionButton("send_change_request", "Send request to Robert Isdell", class = "btn-primary")
     )
   )
