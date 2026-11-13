@@ -24,6 +24,18 @@ source("R/ui_helpers.R")
 
 initialize_database()
 
+# Publish input-specific validation messages to the accessible form summary
+# and associate each message with the corresponding Shiny input.
+publish_form_errors <- function(session, form, errors = list()) {
+  entries <- lapply(names(errors), function(id) {
+    list(id = id, message = as.character(errors[[id]]))
+  })
+  session$sendCustomMessage(
+    "opportunity-form-errors",
+    list(form = form, errors = entries)
+  )
+}
+
 app_theme <- bs_theme(
   version = 5,
   primary = "#00677E",
@@ -138,6 +150,7 @@ submit_panel <- nav_panel(
           class = "mb-0 text-muted"
         )
       ),
+      div(id = "submit-errors", class = "form-error-summary", role = "alert", tabindex = "-1"),
       layout_columns(
         col_widths = rep(6, 17),
         textInput("submit_name", "Opportunity name *"),
@@ -211,6 +224,7 @@ request_panel <- nav_panel(
         h1("Request an edit or removal"),
         p("This form is for people who submitted a posting. Robert Isdell reviews each request and may verify it by email before making a change. Submitting a request does not immediately modify the board.")
       ),
+      div(id = "request-errors", class = "form-error-summary", role = "alert", tabindex = "-1"),
       selectInput("request_opportunity", "Existing published opportunity (optional)", choices = c("Other / pending or not listed" = "")),
       textInput("request_title", "Opportunity title (required if not selected above)"),
       textInput("request_email", "Your VIMS email address *", placeholder = "name@vims.edu"),
@@ -230,7 +244,8 @@ ui <- page_navbar(
   theme = app_theme,
   header = tags$head(
     tags$title("VIMS & Batten School Opportunity Board | Research & Internships"),
-    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=20261113"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=20261113a"),
+    tags$script(src = "accessibility.js?v=20261113a", defer = "defer"),
     tags$link(rel = "icon", type = "image/png", href = "VIMSGlobe.png")
   ),
   browse_panel,
@@ -378,44 +393,71 @@ server <- function(input, output, session) {
       return()
     }
 
-    required_values <- c(
-      input$submit_name,
-      input$submit_department,
-      input$submit_contact_name,
-      input$submit_contact_email,
-      input$submit_description
+    field_value <- function(x) str_squish(x %||% "")
+    errors <- list()
+
+    for (field in c("submit_name", "submit_department", "submit_contact_name")) {
+      if (!nzchar(field_value(input[[field]]))) {
+        errors[[field]] <- paste0(
+          switch(field,
+            submit_name = "Opportunity name",
+            submit_department = "Department or center",
+            submit_contact_name = "Contact name"
+          ), " is required."
+        )
+      }
+    }
+
+    email <- str_to_lower(field_value(input$submit_contact_email))
+    if (!nzchar(email)) {
+      errors[["submit_contact_email"]] <- "VIMS contact email is required."
+    } else if (!str_detect(email, "^[a-z0-9._%+\\-]+@vims\\.edu$")) {
+      errors[["submit_contact_email"]] <- "Enter a valid email ending in @vims.edu."
+    }
+
+    description <- field_value(input$submit_description)
+    if (nchar(description) < 20) {
+      errors[["submit_description"]] <- "Description must contain at least 20 characters."
+    }
+
+    date_fields <- c(
+      "submit_start_date", "submit_end_date",
+      "submit_deadline", "submit_expiration"
     )
-
-    if (any(!nzchar(str_squish(required_values)))) {
-      showNotification("Please complete all required fields.", type = "warning")
-      return()
-    }
-
-    if (!str_detect(str_to_lower(str_squish(input$submit_contact_email)), "^[a-z0-9._%+\\-]+@vims\\.edu$")) {
-      showNotification("Please enter a valid @vims.edu contact email.", type = "warning")
-      return()
-    }
-
-    if (nchar(str_squish(input$submit_description)) < 20) {
-      showNotification("Please provide a slightly fuller description.", type = "warning")
-      return()
-    }
-
-    entered_dates <- lapply(
-      list(input$submit_start_date, input$submit_end_date,
-           input$submit_deadline, input$submit_expiration),
-      function(x) if (is.null(x) || length(x) == 0) as.Date(NA) else suppressWarnings(as.Date(x))
+    entered_dates <- lapply(date_fields, function(id) {
+      x <- input[[id]]
+      if (is.null(x) || !length(x)) as.Date(NA)
+      else suppressWarnings(as.Date(x))
+    })
+    names(entered_dates) <- date_fields
+    date_labels <- c(
+      submit_start_date = "Start date", submit_end_date = "End date",
+      submit_deadline = "Application deadline", submit_expiration = "Board expiration date"
     )
-    if (any(vapply(entered_dates, function(x) is.na(x), logical(1)))) {
-      showNotification("All four dates are required: start, end, application deadline, and board expiration.", type = "warning", duration = 8)
-      return()
+    for (id in date_fields) {
+      if (is.na(entered_dates[[id]])) {
+        errors[[id]] <- paste0(date_labels[[id]], " is required.")
+      }
     }
-    if (entered_dates[[2]] < entered_dates[[1]]) {
-      showNotification("End date cannot be before start date.", type = "warning")
-      return()
+
+    if (!is.na(entered_dates$submit_end_date) &&
+        !is.na(entered_dates$submit_start_date) &&
+        entered_dates$submit_end_date < entered_dates$submit_start_date) {
+      errors[["submit_end_date"]] <- "End date must not be before start date."
     }
-    if (any(vapply(entered_dates[c(2, 3, 4)], function(x) x < Sys.Date(), logical(1)))) {
-      showNotification("End date, application deadline, and board expiration must not be in the past.", type = "warning", duration = 8)
+    for (id in c("submit_end_date", "submit_deadline", "submit_expiration")) {
+      if (!is.na(entered_dates[[id]]) && entered_dates[[id]] < Sys.Date()) {
+        errors[[id]] <- paste0(date_labels[[id]], " must be today or later.")
+      }
+    }
+
+    url <- field_value(input$submit_application_url)
+    if (nzchar(url) && !grepl("^https?://", url, ignore.case = TRUE)) {
+      errors[["submit_application_url"]] <- "Application URL must start with https:// or http://."
+    }
+
+    if (length(errors)) {
+      publish_form_errors(session, "submit", errors)
       return()
     }
 
@@ -446,6 +488,7 @@ server <- function(input, output, session) {
       tryCatch({
         submit_opportunity(record)
         incProgress(0.5)
+        publish_form_errors(session, "submit")
         showModal(modalDialog(
           title = "Submission received",
           "Thank you. The opportunity has been sent for review and will appear on the board after approval.",
@@ -482,24 +525,33 @@ server <- function(input, output, session) {
     if (nzchar(str_squish(input$request_website %||% ""))) return()
     email <- str_to_lower(str_squish(input$request_email %||% ""))
     details <- str_squish(input$request_details %||% "")
-    if (!str_detect(email, "^[a-z0-9._%+\\-]+@vims\\.edu$") || nchar(details) < 10) {
-      showNotification("Provide a valid @vims.edu email and at least 10 characters describing the request.", type = "warning", duration = 8)
-      return()
-    }
     selected <- input$request_opportunity %||% ""
     title <- str_squish(input$request_title %||% "")
+    errors <- list()
+
+    if (!nzchar(email)) {
+      errors[["request_email"]] <- "Your VIMS email address is required."
+    } else if (!str_detect(email, "^[a-z0-9._%+\\-]+@vims\\.edu$")) {
+      errors[["request_email"]] <- "Enter a valid email ending in @vims.edu."
+    }
+    if (nchar(details) < 10) {
+      errors[["request_details"]] <- "Describe the change in at least 10 characters."
+    }
     if (!nzchar(selected) && !nzchar(title)) {
-      showNotification("Please select a published opportunity or enter its title.", type = "warning")
-      return()
+      errors[["request_title"]] <- "Choose a published opportunity or enter its title."
     }
     if (nzchar(selected)) {
       data <- opportunities()
       match <- data[data$id == selected, , drop = FALSE]
       if (!nrow(match)) {
-        showNotification("That opportunity could not be found; refresh and try again.", type = "warning")
-        return()
+        errors[["request_opportunity"]] <- "Selected opportunity is unavailable. Refresh and try again."
+      } else {
+        title <- match$opportunity_name[[1]]
       }
-      title <- match$opportunity_name[[1]]
+    }
+    if (length(errors)) {
+      publish_form_errors(session, "request", errors)
+      return()
     }
     tryCatch({
       create_change_request(
@@ -509,6 +561,7 @@ server <- function(input, output, session) {
         request_type = input$request_type,
         details = details
       )
+      publish_form_errors(session, "request")
       showModal(modalDialog(
         title = "Request received",
         "Robert Isdell will review your request and may contact you to confirm it before changing the listing.",
